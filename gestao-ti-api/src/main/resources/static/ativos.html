@@ -1,10 +1,144 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <title>CRUD Ativos</title>
 </head>
 <body>
+
+<h1>Cadastro de Ativo</h1>
+
+<input type="hidden" id="id">
+
+Patrimônio: <input type="text" id="patrimonio"><br><br>
+Tipo: <input type="text" id="tipo"><br><br>
+Marca: <input type="text" id="marca"><br><br>
+Modelo: <input type="text" id="modelo"><br><br>
+Série: <input type="text" id="serie"><br><br>
+IP: <input type="text" id="ip"><br><br>
+MAC: <input type="text" id="mac"><br><br>
+Status: <input type="text" id="status"><br><br>
+Valor: <input type="number" id="valor"><br><br>
+Responsável ID: <input type="number" id="responsavelId"><br><br>
+
+<button onclick="salvar()">Salvar</button>
+<button onclick="listar()">Listar</button>
+
+<hr>
+
+<h2>Lista de Ativos</h2>
+<table border="1">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Patrimônio</th>
+        <th>Marca</th>
+        <th>Modelo</th>
+        <th>Status</th>
+        <th>Ações</th>
+    </tr>
+    </thead>
+    <tbody id="tabela"></tbody>
+</table>
+
+<script>
+
+    const API = "http://localhost:8080/api/ativos";
+
+    function salvar() {
+
+        const id = document.getElementById("id").value;
+
+        const ativo = {
+            patrimonio: document.getElementById("patrimonio").value,
+            tipo: document.getElementById("tipo").value,
+            marca: document.getElementById("marca").value,
+            modelo: document.getElementById("modelo").value,
+            serie: document.getElementById("serie").value,
+            ip: document.getElementById("ip").value,
+            mac: document.getElementById("mac").value,
+            status: document.getElementById("status").value,
+            valor: document.getElementById("valor").value,
+            responsavelId: document.getElementById("responsavelId").value
+        };
+
+        if (id) {
+            fetch(API + "/" + id, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(ativo)
+            }).then(() => {
+                limpar();
+                listar();
+            });
+        } else {
+            fetch(API, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(ativo)
+            }).then(() => {
+                limpar();
+                listar();
+            });
+        }
+    }
+
+    function listar() {
+        fetch(API)
+            .then(res => res.json())
+            .then(data => {
+                const tabela = document.getElementById("tabela");
+                tabela.innerHTML = "";
+
+                data.forEach(a => {
+                    tabela.innerHTML += `
+                        <tr>
+                            <td>${a.id}</td>
+                            <td>${a.patrimonio}</td>
+                            <td>${a.marca}</td>
+                            <td>${a.modelo}</td>
+                            <td>${a.status}</td>
+                            <td>
+                                <button onclick="editar(${a.id})">Editar</button>
+                                <button onclick="deletar(${a.id})">Excluir</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            });
+    }
+
+    function editar(id) {
+        fetch(API + "/" + id)
+            .then(res => res.json())
+            .then(a => {
+                document.getElementById("id").value = a.id;
+                document.getElementById("patrimonio").value = a.patrimonio;
+                document.getElementById("tipo").value = a.tipo;
+                document.getElementById("marca").value = a.marca;
+                document.getElementById("modelo").value = a.modelo;
+                document.getElementById("serie").value = a.serie;
+                document.getElementById("ip").value = a.ip;
+                document.getElementById("mac").value = a.mac;
+                document.getElementById("status").value = a.status;
+                document.getElementById("valor").value = a.valor;
+                document.getElementById("responsavelId").value = a.responsavelId;
+            });
+    }
+
+    function deletar(id) {
+        fetch(API + "/" + id, {
+            method: "DELETE"
+        }).then(() => listar());
+    }
+
+    function limpar() {
+        document.getElementById("id").value = "";
+        document.querySelectorAll("input").forEach(i => i.value = "");
+    }
+
+    listar();
+
+</script>
 
 </body>
 </html>
